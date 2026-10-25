@@ -50,6 +50,9 @@ class WorkflowService:
     # ── helpers ──
 
     def _graph_for(self, scenario: str):
+        available = sorted(p.stem for p in (self.fixtures_dir / "evaluator").glob("*.json"))
+        if scenario not in available:
+            raise InvalidInputError(f"--scenario {scenario}", [f"unknown scenario; choose one of: {', '.join(available)}"])
         script = load_evaluator_script(self.fixtures_dir / "evaluator" / f"{scenario}.json")
         return build_graph(ScriptedEvaluator(script), FakeReviser(), self.storage.events, self.storage.checkpointer)
 

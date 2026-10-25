@@ -153,8 +153,10 @@ def test_malformed_input_fails_predictably_and_creates_nothing(db, capsys, bad):
     assert count_rows(storage.checkpointer.conn, "checkpoints") == 0
 
 
-def test_unknown_scenario_is_rejected_before_anything_is_created(db):
-    assert cli(db, "run", "content-001", "--scenario", "does-not-exist") == 2
+@pytest.mark.parametrize("scenario", ["does-not-exist", "../../evaluator/pass"])
+def test_unknown_scenario_is_rejected_before_anything_is_created(db, capsys, scenario):
+    assert cli(db, "run", "content-001", "--scenario", scenario) == 2
+    assert "unknown scenario; choose one of: always_revise, pass, revise_once" in capsys.readouterr().err
     assert open_storage(db).runs.get("content-001") is None
 
 
