@@ -279,3 +279,7 @@ task-4_abiodun-alao/
 ├── tests/                    35 tests
 └── examples/                 recorded CLI sessions and event logs, plus explore_graph.py
 ```
+
+## How this was built
+
+Built while learning LangGraph, in pair-programming sessions with Claude (Anthropic), which wrote the first version of each stage. I made the design calls, built and debugged each stage locally, and checked every flow by hand. Details are in the pull request.
