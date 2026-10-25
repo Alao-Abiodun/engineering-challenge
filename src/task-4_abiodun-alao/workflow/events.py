@@ -30,11 +30,16 @@ class EventLog:
         self.conn.commit()
         return cur.rowcount == 1
 
-    def for_run(self, run_id: str) -> list[dict[str, Any]]:
+    def for_run(self, run_id: str, after_seq: int = 0) -> list[dict[str, Any]]:
         rows = self.conn.execute(
-            "SELECT event, data, created_at FROM workflow_events WHERE run_id = ? ORDER BY seq", (run_id,)
+            "SELECT seq, event, data, created_at FROM workflow_events WHERE run_id = ? AND seq > ? ORDER BY seq",
+            (run_id, after_seq),
         ).fetchall()
-        return [{"event": event, **json.loads(data), "at": created_at} for event, data, created_at in rows]
+        return [{"seq": seq, "event": event, **json.loads(data), "at": at} for seq, event, data, at in rows]
+
+    def last_seq(self, run_id: str) -> int:
+        row = self.conn.execute("SELECT COALESCE(MAX(seq), 0) FROM workflow_events WHERE run_id = ?", (run_id,))
+        return row.fetchone()[0]
 
     def names(self, run_id: str) -> list[str]:
         return [e["event"] for e in self.for_run(run_id)]

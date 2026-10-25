@@ -123,3 +123,14 @@ def test_checkpoint_allowlist_covers_every_state_type(db, fixtures_dir):
     assert type(saved["last_evaluation"]) is EvaluationResult
     assert type(saved["review"]) is ReviewDecision
     assert type(saved["status"]) is Status
+
+def test_completion_is_recorded_once_even_if_complete_runs_twice(db, fixtures_dir):
+    app, _, _, events = make(db, fixtures_dir, "pass")
+    _, config = start(app, fixtures_dir)
+    paused_checkpoint = app.get_state(config).config
+
+    app.invoke(Command(resume=APPROVE), config)
+    app.invoke(Command(resume=APPROVE), paused_checkpoint)
+
+    assert events.names("run-001").count("workflow_completed") == 1
+    assert events.names("run-001").count("human_approved") == 1

@@ -1,6 +1,7 @@
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
+from .runs import RunRegistry
 
 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 from langgraph.checkpoint.sqlite import SqliteSaver
@@ -21,6 +22,7 @@ def _connect(db_path: Path) -> sqlite3.Connection:
 class Storage:
     checkpointer: SqliteSaver
     events: EventLog
+    runs: RunRegistry
     _connections: tuple[sqlite3.Connection, ...]
 
     def close(self) -> None:
@@ -30,6 +32,6 @@ class Storage:
 
 def open_storage(db_path: Path) -> Storage:
     db_path.parent.mkdir(parents=True, exist_ok=True)
-    checkpoint_conn, events_conn = _connect(db_path), _connect(db_path)
+    checkpoint_conn, app_conn = _connect(db_path), _connect(db_path)
     checkpointer = SqliteSaver(checkpoint_conn, serde=JsonPlusSerializer(allowed_msgpack_modules=CHECKPOINT_TYPES))
-    return Storage(checkpointer, EventLog(events_conn), (checkpoint_conn, events_conn))
+    return Storage(checkpointer, EventLog(app_conn), RunRegistry(app_conn), (checkpoint_conn, app_conn))
