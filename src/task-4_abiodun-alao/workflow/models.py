@@ -50,3 +50,18 @@ class Status(str, Enum):
 
 
 TERMINAL_STATUSES = frozenset({Status.COMPLETED, Status.REJECTED, Status.REVISION_LIMIT_REACHED})
+
+class WorkflowState(BaseModel):
+
+    model_config = ConfigDict(extra="forbid")
+
+    run_id: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{2,63}$")
+    content: ContentItem
+    max_revisions: int = Field(default=2, ge=0, le=10)
+    revision_count: int = 0
+    evaluation_count: int = 0
+    last_evaluation: EvaluationResult | None = None
+    status: Status = Status.RUNNING
+    review: ReviewDecision | None = None
+    stop_reason: str | None = None
+    checkpoint_version: int = 0

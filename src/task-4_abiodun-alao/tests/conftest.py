@@ -1,3 +1,7 @@
+import os
+
+os.environ.setdefault("LANGGRAPH_STRICT_MSGPACK", "true")
+
 from pathlib import Path
 
 import pytest
